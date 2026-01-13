@@ -32,7 +32,7 @@ retriever = VectorRetriever(
 llm = OpenAILLM(
     # model_name="gpt-3.5-turbo", 
     model_name="gpt-4o",
-    model_params={"temperature": 0.5}
+    model_params={"temperature": 1}
 )
 
 # Create GraphRAG pipeline
@@ -46,7 +46,7 @@ response = rag.search(
 )
 print(response.answer)
 
-# Search, return context ...
+# Search; include context in return ...
 
 query_text = "Find me movies about toys coming alive"
 response = rag.search(
