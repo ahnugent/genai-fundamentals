@@ -20,16 +20,31 @@ driver = GraphDatabase.driver(
 # Create embedder
 embedder = OpenAIEmbeddings(model="text-embedding-ada-002")
 
+# target = "actors"
+target = "directors"
+
 # Define retrieval query
-retrieval_query = """
-MATCH (node)<-[r:RATED]-()
-RETURN 
-  node.title AS title, node.plot AS plot, score AS similarityScore, 
-  collect { MATCH (node)-[:IN_GENRE]->(g) RETURN g.name } as genres, 
-  collect { MATCH (node)<-[:ACTED_IN]->(a) RETURN a.name } as actors, 
-  avg(r.rating) as userRating
-ORDER BY userRating DESC
-"""
+
+if target == "actors":
+    retrieval_query = """
+    MATCH (node)<-[r:RATED]-()
+    RETURN 
+    node.title AS title, node.plot AS plot, score AS similarityScore, 
+    collect { MATCH (node)-[:IN_GENRE]->(g) RETURN g.name } as genres, 
+    collect { MATCH (node)<-[:ACTED_IN]->(a) RETURN a.name } as actors, 
+    avg(r.rating) as userRating
+    ORDER BY userRating DESC
+    """
+elif target == "directors":
+    retrieval_query = """
+    MATCH (node)<-[r:RATED]-()
+    RETURN 
+    node.title AS title, node.plot AS plot, score AS similarityScore, 
+    collect { MATCH (node)-[:IN_GENRE]->(g) RETURN g.name } as genres, 
+    collect { MATCH (node)<-[:DIRECTED]-(director) RETURN director.name } as directors, 
+    avg(r.rating) as userRating
+    ORDER BY userRating DESC
+    """
 
 # Create retriever
 retriever = VectorCypherRetriever(
@@ -47,7 +62,13 @@ rag = GraphRAG(retriever=retriever, llm=llm)
 
 # Search ...
 
-query_text = "Find the highest rated action movie about travelling to other planets"
+if target == "actors":
+    query_text = "Find the highest rated action movie about travelling to other planets"
+    # query_text = "Find the lowest rated comedy movie about vampires"
+    # query_text = "Find the lowest rated comedy movie" #: not reliable: top_k=5 reduces subset, letting similarity score bias results randomly; don't use LLM for this case! 
+    # query_text = "What genres are represented about movies where the hero fails his mission?"
+elif target == "directors":
+    query_text = "Who has directed movies about weddings?"
 
 response = rag.search(
     query_text=query_text, 
