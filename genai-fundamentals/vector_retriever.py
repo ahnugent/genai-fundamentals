@@ -28,7 +28,9 @@ retriever = VectorRetriever(
 )
 
 # Search for similar items
-result = retriever.search(query_text="Toys coming alive", top_k=5)
+#result = retriever.search(query_text="Toys coming alive", top_k=5)
+#result = retriever.search(query_text="A person forms a relationship with an AI companion", top_k=10)
+result = retriever.search(query_text="A computer takes control over humans", top_k=10)
 
 # Parse results
 for item in result.items:
