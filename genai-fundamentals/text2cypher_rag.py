@@ -9,7 +9,7 @@ from neo4j_graphrag.retrievers import Text2CypherRetriever
 
 # Use examples in call to build Cypher query?
 use_examples = True
-use_schema = True
+use_schema = False
 print(f"OPTION: use examples: {use_examples}")
 print(f"OPTION: use schema: {use_schema}")
 
@@ -50,10 +50,11 @@ if use_schema:
 
 # Build the retriever ...
 if use_examples:
-    # Cypher examples as input/query pairs:
+    # Cypher examples as input/query pairs: 
     examples = [
-        "USER INPUT: 'How many movies are in the Sci-Fi genre?' QUERY: MATCH (m:Movie)-[:IN_GENRE]->(g:Genre {name: 'Sci-Fi'}) RETURN g.name, count(m) AS genre, numberOfMovies",
-        #X: "USER INPUT: 'Get movies in the Sci-Fi genre?' QUERY: MATCH (m:Movie)-[:IN_GENRE]->(g:Genre {name: 'Sci-Fi'}) RETURN g.name AS genre, count(m) AS numberOfMovies",
+        #E: "USER INPUT: 'How many movies are in the Sci-Fi genre?' QUERY: MATCH (m:Movie)-[:IN_GENRE]->(g:Genre {name: 'Sci-Fi'}) RETURN 'There are ' || toString(count(m) AS numberOfMovies) || ' movies in the ' || g.name || ' genre.' AS result",
+        #X: "USER INPUT: 'How many movies are in the Sci-Fi genre?' QUERY: MATCH (m:Movie)-[:IN_GENRE]->(g:Genre {name: 'Sci-Fi'}) RETURN g.name, count(m) AS numberOfMovies",
+        "USER INPUT: 'Get movies in the Sci-Fi genre?' QUERY: MATCH (m:Movie)-[:IN_GENRE]->(g:Genre {name: 'Sci-Fi'}) RETURN g.name AS genre, count(m) AS numberOfMovies",
         "USER INPUT: 'Get user ratings for a movie?' QUERY: MATCH (u:User)-[r:RATED]->(m:Movie) WHERE m.title = 'Movie Title' RETURN r.rating"
     ]
     t2cr_args = {'driver': driver, 'llm': t2c_llm, 'examples': examples, 'neo4j_schema': None}
@@ -63,18 +64,20 @@ else:
 if use_schema:
     t2cr_args['neo4j_schema'] = neo4j_schema
 
-retriever = Text2CypherRetriever(
-    driver = t2cr_args['driver'],
-    llm = t2cr_args['llm'],
-    examples = t2cr_args['examples'],
-    neo4j_schema = t2cr_args['neo4j_schema'],
-)
-
 # retriever = Text2CypherRetriever(
-#     driver=driver,
-#     llm=t2c_llm,
-#     examples=examples,
+#     driver = t2cr_args['driver'],
+#     llm = t2cr_args['llm'],
+#     examples = t2cr_args['examples'],
+#     neo4j_schema = t2cr_args['neo4j_schema'],
 # )
+
+# print(f'Examples: {examples}')  #: check to see if examples is damaged
+
+retriever = Text2CypherRetriever(
+    driver=driver,
+    llm=t2c_llm,
+    examples=examples,
+)
 
 
 llm = OpenAILLM(model_name="gpt-4o")
